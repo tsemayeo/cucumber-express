@@ -65,27 +65,25 @@ describe('validateResponse', () => {
 })
 
 describe('validateResponse with captures', () => {
-  it('resolves a capture and passes when value matches', () => {
+  it('stores a value in world.captures', () => {
     const world = new ScenarioWorld()
-    world.captures.set('userId', 'abc-123')
-    expect(() =>
-      validateResponse(table([['body.id', '{userId}']]), { body: { id: 'abc-123' } }, world)
-    ).not.toThrow()
+    validateResponse(table([['body.id', '{userId}']]), { body: { id: 'abc-123' } }, world)
+    expect(world.captures.get('userId')).toBe('abc-123')
   })
 
-  it('resolves a capture but throws when value does not match', () => {
+  it('lookup throws when value does not match captured value', () => {
     const world = new ScenarioWorld()
     world.captures.set('userId', 'abc-123')
     expect(() =>
-      validateResponse(table([['body.id', '{userId}']]), { body: { id: 'xyz-999' } }, world)
+      validateResponse(table([['body.id', '<userId>']]), { body: { id: 'xyz-999' } }, world)
     ).toThrow('body.id')
   })
 
-  it('throws when capture key is not in world.captures', () => {
+  it('lookup throws when key not in world.captures', () => {
     const world = new ScenarioWorld()
     expect(() =>
-      validateResponse(table([['body.id', '{userId}']]), { body: { id: 'abc-123' } }, world)
-    ).toThrow('{userId}')
+      validateResponse(table([['body.id', '<userId>']]), { body: { id: 'abc-123' } }, world)
+    ).toThrow('<userId>')
   })
 
   it('does not treat <null> as a capture when world is provided', () => {
