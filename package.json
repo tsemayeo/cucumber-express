@@ -1,0 +1,21 @@
+{
+  "name": "cucumber-express",
+  "version": "0.1.0",
+  "description": "Cucumber-js helper for validating response objects via Gherkin data tables",
+  "type": "module",
+  "exports": "./dist/validate/index.js",
+  "types": "./dist/validate/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "test": "vitest run"
+  },
+  "peerDependencies": {
+    "@cucumber/cucumber": ">=9.0.0"
+  },
+  "devDependencies": {
+    "@cucumber/cucumber": "^11.0.0",
+    "typescript": "^5.0.0",
+    "vitest": "^3.0.0"
+  },
+  "license": "MIT"
+}
