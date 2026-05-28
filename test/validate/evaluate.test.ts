@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { evaluate } from '../../src/validate/evaluate.js'
+import { ScenarioWorld } from '../../src/world/index.js'
 
 const obj = {
   body: {
@@ -102,5 +103,77 @@ describe('evaluate', () => {
   it('<null> works through [-] operator: none are null', () => {
     const data = { list: ['a', 'b', 'c'] }
     expect(evaluate('list[-]', '<null>', data)).toBeNull()
+  })
+})
+
+describe('evaluate — captures, lookups and regex', () => {
+  it('{key} stores value in world.captures and returns null', () => {
+    const world = new ScenarioWorld()
+    const result = evaluate('body.user.name', '{userName}', obj, world)
+    expect(result).toBeNull()
+    expect(world.captures.get('userName')).toBe('John')
+  })
+
+  it('{key} without world throws', () => {
+    expect(() => evaluate('body.user.name', '{userName}', obj)).toThrow('{userName}')
+  })
+
+  it('{key:/regex/} stores full value when gate passes and no capture group', () => {
+    const world = new ScenarioWorld()
+    const result = evaluate('body.user.name', '{name:/^J/}', obj, world)
+    expect(result).toBeNull()
+    expect(world.captures.get('name')).toBe('John')
+  })
+
+  it('{key:/regex/} stores capture group 1 when regex has a group', () => {
+    const world = new ScenarioWorld()
+    const result = evaluate('body.user.name', '{initial:/^(J)/}', obj, world)
+    expect(result).toBeNull()
+    expect(world.captures.get('initial')).toBe('J')
+  })
+
+  it('{key:/regex/} returns failure string and does not store when gate fails', () => {
+    const world = new ScenarioWorld()
+    const result = evaluate('body.user.name', '{name:/^Z/}', obj, world)
+    expect(result).toContain('body.user.name')
+    expect(world.captures.has('name')).toBe(false)
+  })
+
+  it('<key> returns null when captured value matches resolved value', () => {
+    const world = new ScenarioWorld()
+    world.captures.set('name', 'John')
+    expect(evaluate('body.user.name', '<name>', obj, world)).toBeNull()
+  })
+
+  it('<key> returns failure string when captured value does not match', () => {
+    const world = new ScenarioWorld()
+    world.captures.set('name', 'Jane')
+    const result = evaluate('body.user.name', '<name>', obj, world)
+    expect(result).toContain('body.user.name')
+    expect(result).toContain('Jane')
+  })
+
+  it('<key> throws when key is not in world.captures', () => {
+    const world = new ScenarioWorld()
+    expect(() => evaluate('body.user.name', '<name>', obj, world)).toThrow('<name>')
+  })
+
+  it('/regex/ returns null when value matches pattern', () => {
+    expect(evaluate('body.user.name', '/^Jo/', obj)).toBeNull()
+  })
+
+  it('/regex/ returns failure string when value does not match pattern', () => {
+    const result = evaluate('body.user.name', '/^Za/', obj)
+    expect(result).toContain('body.user.name')
+  })
+
+  it('<null> is handled as built-in special, not a capture lookup', () => {
+    const world = new ScenarioWorld()
+    expect(evaluate('body.meta', '<null>', obj, world)).toBeNull()
+  })
+
+  it('<present> is handled as built-in special, not a capture lookup', () => {
+    const world = new ScenarioWorld()
+    expect(evaluate('body.user.name', '<present>', obj, world)).toBeNull()
   })
 })
