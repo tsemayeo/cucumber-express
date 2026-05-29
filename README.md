@@ -1,6 +1,6 @@
 # cucumber-express
 
-A cucumber-js helper for validating response objects via Gherkin data tables.
+A cucumber-js helper for validating response objects and building request objects via Gherkin data tables.
 
 ## Installation
 
@@ -10,7 +10,7 @@ npm install cucumber-express
 
 `@cucumber/cucumber` is a peer dependency and must be installed separately.
 
-## Usage
+## `validateResponse`
 
 Call `validateResponse` inside a step definition, passing the cucumber `DataTable` and the object you want to validate:
 
@@ -36,49 +36,124 @@ Then the response should match:
 
 If any rows fail, a single error is thrown listing every mismatch.
 
+## `buildRequest`
+
+Call `buildRequest` inside a step definition, passing a schema factory, the `DataTable`, and an optional world. The schema factory produces the default object (typically using faker for irrelevant fields); the table overrides only the fields that matter for the scenario.
+
+```javascript
+import { buildRequest } from 'cucumber-express'
+import { faker } from '@faker-js/faker'
+
+const userSchema = () => ({
+  body: {
+    user: {
+      name:  faker.person.fullName(),
+      email: faker.internet.email(),
+      role:  'member',
+    }
+  }
+})
+
+When('I create a user with:', function (dataTable) {
+  this.request = buildRequest(userSchema, dataTable, this)
+})
+```
+
+Write a two-column data table — each row overrides one field by path:
+
+```gherkin
+When I create a user with:
+  | body.user.name  | John Doe      |
+  | body.user.role  | admin         |
+```
+
+Fields not in the table keep their schema-generated values. The schema is called fresh on every `buildRequest` invocation.
+
+### Type casting
+
+Prefix a value with `(type) ` to set a non-string field:
+
+| Prefix | Result |
+|---|---|
+| `(int) 30` | `30` (integer) |
+| `(float) 9.99` | `9.99` (float) |
+| `(boolean) true` | `true` (boolean) |
+| `(boolean) false` | `false` (boolean) |
+
+```gherkin
+When I create a product with:
+  | body.product.price    | (float) 9.99   |
+  | body.product.stock    | (int) 100      |
+  | body.product.active   | (boolean) true |
+```
+
+### World lookups
+
+Use `<key>` to inject a captured value from a previous step:
+
+```gherkin
+When I create a user
+Then the response should match:
+  | body.user.id | {userId} |
+
+When I create an order with:
+  | body.order.userId | <userId> |
+```
+
+Type casting and lookups can be combined:
+
+```gherkin
+| body.order.quantity | (int) <qty> |
+```
+
+### Array elements
+
+The schema defines the array structure. Table rows can override fields on existing elements by index — the element must already exist in the schema output:
+
+```javascript
+const orderSchema = () => ({
+  body: {
+    items: [
+      { name: faker.commerce.productName(), qty: 1 },
+      { name: faker.commerce.productName(), qty: 1 },
+    ]
+  }
+})
+```
+
+```gherkin
+When I place an order with:
+  | body.items[0].name | Widget      |
+  | body.items[1].qty  | (int) 5     |
+```
+
 ## Path syntax
 
-The first column is a dot-separated path traversed from the root of the response object. The second column is the expected value — all comparisons are string-to-string (the resolved value is coerced with `String()`).
+The first column is a dot-separated path from the root object.
 
 ### Dot notation
 
-Navigate nested objects using `.`:
-
 ```
-body.user.name         → responseObject.body.user.name
-headers.content-type   → responseObject.headers["content-type"]
+body.user.name         → object.body.user.name
+headers.content-type   → object.headers["content-type"]
 ```
 
-### Array operators
+### Array index
 
-Append an operator after the array key to assert across its elements:
+```
+body.items[0].name    → first item's name
+```
+
+### Array operators (`validateResponse` only)
 
 | Operator | Meaning |
 |---|---|
-| `[n]` | The element at index `n` must equal the expected value |
+| `[n]` | The element at index `n` |
 | `[*]` | At least one element must equal the expected value |
 | `[+]` | Every element must equal the expected value |
 | `[-]` | No element must equal the expected value |
 
-```
-body.items[0].name    → first item's name equals expected
-body.items[*].type    → at least one item's type equals expected
-body.items[+].active  → every item's active value equals expected
-body.items[-].deleted → no item's deleted value equals expected
-```
-
-### String coercion
-
-Resolved values are coerced to strings before comparison, so numbers and booleans can be asserted directly:
-
-```gherkin
-| body.status       | 200  |
-| body.user.active  | true |
-```
-
-## Expected value reference
-
-The second column supports seven forms:
+## Expected value reference (`validateResponse`)
 
 | Form | Behaviour |
 |---|---|
@@ -94,76 +169,41 @@ The second column supports seven forms:
 
 ### Regex assertions
 
-Assert that a value matches a pattern without capturing it:
-
 ```gherkin
 Then the response should match:
   | body.user.id  | /^usr_[a-z0-9]+$/ |
   | body.user.url | /^https?:\/\//    |
 ```
 
-Regex assertions also work with array operators:
-
-```gherkin
-| body.items[+].id | /^item_/ |
-```
-
 ### Captures and lookups
 
-Use `ScenarioWorld` to share values across steps within a scenario. Register it as your Cucumber world constructor:
+Use `ScenarioWorld` to share values across steps. Register it as your Cucumber world constructor:
 
 ```javascript
-import { validateResponse, ScenarioWorld } from 'cucumber-express'
+import { validateResponse, buildRequest, ScenarioWorld } from 'cucumber-express'
 import { setWorldConstructor } from '@cucumber/cucumber'
 
 setWorldConstructor(ScenarioWorld)
 ```
 
-Then pass `this` as the third argument to `validateResponse`:
+Pass `this` as the third argument to `validateResponse` or `buildRequest`:
 
 ```javascript
 Then('the response should match:', function (dataTable) {
   validateResponse(dataTable, this.response, this)
 })
-```
 
-**`{key}` — capture a value**
-
-Stores the resolved value in `world.captures` under `key`. The row always passes (no assertion is made about the value):
-
-```gherkin
-When I create a user
-Then the response should match:
-  | body.user.id   | {userId}   |
-  | body.user.name | {userName} |
-```
-
-**`{key:/regex/}` — capture with gate**
-
-Like `{key}`, but the row fails if the resolved value does not match the regex. If the regex contains a capture group, group 1 is stored instead of the full value:
-
-```gherkin
-  | body.user.id  | {userId:/^usr_[a-z0-9]+$/} |
-  | body.token    | {token:/^Bearer (.+)/}      |
-```
-
-In the second example, `token` would store the portion matched by `(.+)`, not the full `Bearer …` string.
-
-**`<key>` — look up a captured value**
-
-Retrieves `world.captures.get(key)` and asserts the resolved value equals it. Throws if the key is not in captures:
-
-```gherkin
-When I fetch the user
-Then the response should match:
-  | body.id   | <userId>   |
-  | body.name | <userName> |
+When('I create a user with:', function (dataTable) {
+  this.request = buildRequest(userSchema, dataTable, this)
+})
 ```
 
 A complete two-step example:
 
 ```gherkin
-When I create a user
+When I create a user with:
+  | body.user.name | John  |
+  | body.user.role | admin |
 Then the response should match:
   | body.user.id   | {userId}           |
   | body.user.name | John               |
@@ -177,7 +217,7 @@ Then the response should match:
 
 ## Error messages
 
-When validation fails, the thrown error lists every failing row:
+When `validateResponse` fails, the thrown error lists every failing row:
 
 ```
 [body.user.name] expected "Jane", got "John"
