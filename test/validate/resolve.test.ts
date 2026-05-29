@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { resolvePath } from '../../src/validate/resolve.js'
-import { parsePath } from '../../src/validate/parse.js'
+import { parsePath } from '../../src/util/parse.js'
 
 const obj = {
   body: {

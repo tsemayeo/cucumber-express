@@ -1,4 +1,5 @@
-import type { Segment, ResolveResult } from './types.js'
+import type { Segment } from '../util/types.js'
+import type { ResolveResult } from './types.js'
 
 function resolveKey(object: unknown, key: string, path: string): { value: unknown; path: string } {
   if (typeof object !== 'object' || object === null || Array.isArray(object)) {
