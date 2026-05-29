@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { parsePath } from '../../src/validate/parse.js'
+import { parsePath } from '../../src/util/parse.js'
 
 describe('parsePath', () => {
   it('parses a single key', () => {

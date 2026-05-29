@@ -1,6 +1,6 @@
 import type { ResolveResult } from './types.js'
 import type { ScenarioWorld } from '../world/index.js'
-import { parsePath } from './parse.js'
+import { parsePath } from '../util/parse.js'
 import { resolvePath } from './resolve.js'
 
 const CAPTURE_PLAIN_REGEX = /^\{([^}:/]+)\}$/
