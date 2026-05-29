@@ -15,4 +15,4 @@
 
 ## 4. Exports
 
-- [ ] 4.1 Export `buildRequest` from `src/index.ts` alongside `validateResponse`
+- [x] 4.1 Export `buildRequest` from `src/index.ts` alongside `validateResponse`
