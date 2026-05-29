@@ -1,8 +1,9 @@
 import { describe, it, expect } from 'vitest'
+import { DataTable } from '@cucumber/cucumber'
 import { validateResponse } from '../../src/validate/index.js'
 import { ScenarioWorld } from '../../src/world/index.js'
 
-const table = (rows: string[][]) => ({ rows: () => rows })
+const table = (rows: string[][]): DataTable => new DataTable(rows)
 
 const obj = {
   body: {

@@ -10,8 +10,8 @@
 
 ## 3. `buildRequest` Function
 
-- [ ] 3.1 Implement `buildRequest<T extends object>(schema: () => T, table: DataTable, world?: ScenarioWorld): T` — calls schema, iterates rows, calls `parseValue` then `setPath` for each
-- [ ] 3.2 Write integration tests for `buildRequest` covering: schema values preserved for unspecified fields, string override, typed overrides (int/float/boolean), world lookup, combined cast+lookup, array element creation, sparse element, conflicting path throws
+- [x] 3.1 Implement `buildRequest<T extends object>(schema: () => T, table: DataTable, world?: ScenarioWorld): T` — calls schema, iterates rows, calls `parseValue` then `setPath` for each
+- [x] 3.2 Write integration tests for `buildRequest` covering: schema values preserved for unspecified fields, string override, typed overrides (int/float/boolean), world lookup, combined cast+lookup, array element creation, sparse element, conflicting path throws
 
 ## 4. Exports
 
