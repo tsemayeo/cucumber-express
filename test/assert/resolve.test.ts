@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { resolvePath } from '../../src/validate/resolve.js'
+import { resolvePath } from '../../src/assert/resolve.js'
 import { parsePath } from '../../src/util/parse.js'
 
 const obj = {

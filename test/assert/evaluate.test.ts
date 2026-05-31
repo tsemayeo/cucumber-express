@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { evaluate } from '../../src/validate/evaluate.js'
+import { evaluate } from '../../src/assert/evaluate.js'
 import { ScenarioWorld } from '../../src/world/index.js'
 
 const obj = {

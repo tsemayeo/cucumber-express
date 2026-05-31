@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { DataTable } from '@cucumber/cucumber'
-import { validateResponse } from '../../src/validate/index.js'
+import { assertResponse } from '../../src/assert/index.js'
 import { ScenarioWorld } from '../../src/world/index.js'
 
 const table = (rows: string[][]): DataTable => new DataTable(rows)
@@ -16,10 +16,10 @@ const obj = {
   },
 }
 
-describe('validateResponse', () => {
+describe('assertResponse', () => {
   it('does not throw when all rows pass', () => {
     expect(() =>
-      validateResponse(table([
+      assertResponse(table([
         ['body.user.name',       'John'],
         ['body.items[0].status', 'active'],
       ]), obj)
@@ -28,14 +28,14 @@ describe('validateResponse', () => {
 
   it('throws with a single failure', () => {
     expect(() =>
-      validateResponse(table([['body.user.name', 'Jane']]), obj)
+      assertResponse(table([['body.user.name', 'Jane']]), obj)
     ).toThrow('body.user.name')
   })
 
   it('throws with all failure lines when multiple rows fail', () => {
     let error: Error | undefined
     try {
-      validateResponse(table([
+      assertResponse(table([
         ['body.user.name',       'Jane'],
         ['body.items[0].status', 'inactive'],
       ]), obj)
@@ -48,27 +48,27 @@ describe('validateResponse', () => {
 
   it('passes with some operator end-to-end', () => {
     expect(() =>
-      validateResponse(table([['body.items[*].type', 'service']]), obj)
+      assertResponse(table([['body.items[*].type', 'service']]), obj)
     ).not.toThrow()
   })
 
   it('passes with all operator end-to-end', () => {
     expect(() =>
-      validateResponse(table([['body.items[+].category', 'item']]), obj)
+      assertResponse(table([['body.items[+].category', 'item']]), obj)
     ).not.toThrow()
   })
 
   it('passes with none operator end-to-end', () => {
     expect(() =>
-      validateResponse(table([['body.items[-].type', 'widget']]), obj)
+      assertResponse(table([['body.items[-].type', 'widget']]), obj)
     ).not.toThrow()
   })
 })
 
-describe('validateResponse with captures', () => {
+describe('assertResponse with captures', () => {
   it('stores a value in world.captures', () => {
     const world = new ScenarioWorld()
-    validateResponse(table([['body.id', '{userId}']]), { body: { id: 'abc-123' } }, world)
+    assertResponse(table([['body.id', '{userId}']]), { body: { id: 'abc-123' } }, world)
     expect(world.captures.get('userId')).toBe('abc-123')
   })
 
@@ -76,34 +76,34 @@ describe('validateResponse with captures', () => {
     const world = new ScenarioWorld()
     world.captures.set('userId', 'abc-123')
     expect(() =>
-      validateResponse(table([['body.id', '<userId>']]), { body: { id: 'xyz-999' } }, world)
+      assertResponse(table([['body.id', '<userId>']]), { body: { id: 'xyz-999' } }, world)
     ).toThrow('body.id')
   })
 
   it('lookup throws when key not in world.captures', () => {
     const world = new ScenarioWorld()
     expect(() =>
-      validateResponse(table([['body.id', '<userId>']]), { body: { id: 'abc-123' } }, world)
+      assertResponse(table([['body.id', '<userId>']]), { body: { id: 'abc-123' } }, world)
     ).toThrow('<userId>')
   })
 
   it('does not treat <null> as a capture when world is provided', () => {
     const world = new ScenarioWorld()
     expect(() =>
-      validateResponse(table([['body.meta', '<null>']]), { body: { meta: null } }, world)
+      assertResponse(table([['body.meta', '<null>']]), { body: { meta: null } }, world)
     ).not.toThrow()
   })
 
   it('does not treat a plain literal as a capture when world is provided', () => {
     const world = new ScenarioWorld()
     expect(() =>
-      validateResponse(table([['body.user.name', 'John']]), obj, world)
+      assertResponse(table([['body.user.name', 'John']]), obj, world)
     ).not.toThrow()
   })
 
   it('behaves identically to the original two-argument call when no world is provided', () => {
     expect(() =>
-      validateResponse(table([['body.user.name', 'John']]), obj)
+      assertResponse(table([['body.user.name', 'John']]), obj)
     ).not.toThrow()
   })
 })
