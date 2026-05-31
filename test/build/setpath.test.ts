@@ -39,6 +39,12 @@ describe('setPath — index segments', () => {
     expect(() => setPath(parsePath('body.items[2].name'), obj, 'Thing')).toThrow('2')
   })
 
+  it('allows writing to a valid index that holds undefined', () => {
+    const obj = { items: [1, undefined, 3] as unknown[] }
+    setPath(parsePath('items[1]'), obj, 42)
+    expect(obj.items[1]).toBe(42)
+  })
+
   it('throws when a non-array sits where an index is expected', () => {
     const obj = { body: { items: 'not-an-array' } }
     expect(() => setPath(parsePath('body.items[0].name'), obj, 'Widget')).toThrow('body.items')

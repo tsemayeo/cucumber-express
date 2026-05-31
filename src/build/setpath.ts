@@ -7,7 +7,7 @@ function navigateKey(
   nextKind: Segment['kind'],
 ): { current: unknown; path: string } {
   if (typeof object !== 'object' || object === null || Array.isArray(object)) {
-    throw new Error(`Expected object at "${path}", got ${Array.isArray(object) ? 'array' : typeof object}`)
+    throw new Error(`Expected object at "${path}", got ${object === null ? 'null' : Array.isArray(object) ? 'array' : typeof object}`)
   }
   const record = object as Record<string, unknown>
   const nextPath = path ? `${path}.${key}` : key
@@ -25,7 +25,7 @@ function navigateIndex(
   if (!Array.isArray(object)) {
     throw new Error(`Expected array at "${path}", got ${typeof object}`)
   }
-  if (object[index] === undefined) {
+  if (index < 0 || index >= object.length) {
     throw new Error(`Index ${index} out of bounds at "${path}" (length: ${object.length})`)
   }
   return { current: object[index], path: `${path}[${index}]` }
@@ -33,7 +33,7 @@ function navigateIndex(
 
 function assignKey(object: unknown, key: string, path: string, value: unknown): void {
   if (typeof object !== 'object' || object === null || Array.isArray(object)) {
-    throw new Error(`Expected object at "${path}", got ${Array.isArray(object) ? 'array' : typeof object}`)
+    throw new Error(`Expected object at "${path}", got ${object === null ? 'null' : Array.isArray(object) ? 'array' : typeof object}`)
   }
   ;(object as Record<string, unknown>)[key] = value
 }
@@ -42,7 +42,7 @@ function assignIndex(object: unknown, index: number, path: string, value: unknow
   if (!Array.isArray(object)) {
     throw new Error(`Expected array at "${path}", got ${typeof object}`)
   }
-  if (object[index] === undefined) {
+  if (index < 0 || index >= object.length) {
     throw new Error(`Index ${index} out of bounds at "${path}" (length: ${object.length})`)
   }
   object[index] = value
