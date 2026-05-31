@@ -3,7 +3,7 @@ import type { ResolveResult } from './types.js'
 
 function resolveKey(object: unknown, key: string, path: string): { value: unknown; path: string } {
   if (typeof object !== 'object' || object === null || Array.isArray(object)) {
-    throw new Error(`Expected object at "${path}", got ${Array.isArray(object) ? 'array' : typeof object}`)
+    throw new Error(`Expected object at "${path}", got ${object === null ? 'null' : Array.isArray(object) ? 'array' : typeof object}`)
   }
   if (!(key in (object as Record<string, unknown>))) {
     throw new Error(`Key "${key}" not found at "${path}"`)
