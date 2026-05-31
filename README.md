@@ -10,15 +10,15 @@ npm install cucumber-express
 
 `@cucumber/cucumber` is a peer dependency and must be installed separately.
 
-## `validateResponse`
+## `assertResponse`
 
-Call `validateResponse` inside a step definition, passing the cucumber `DataTable` and the object you want to validate:
+Call `assertResponse` inside a step definition, passing the cucumber `DataTable` and the object you want to validate:
 
 ```javascript
-import { validateResponse } from 'cucumber-express'
+import { assertResponse } from 'cucumber-express'
 
 Then('the response should match:', function (dataTable) {
-  validateResponse(dataTable, this.response)
+  assertResponse(dataTable, this.response)
 })
 ```
 
@@ -144,7 +144,7 @@ headers.content-type   → object.headers["content-type"]
 body.items[0].name    → first item's name
 ```
 
-### Array operators (`validateResponse` only)
+### Array operators (`assertResponse` only)
 
 | Operator | Meaning |
 |---|---|
@@ -153,7 +153,7 @@ body.items[0].name    → first item's name
 | `[+]` | Every element must equal the expected value |
 | `[-]` | No element must equal the expected value |
 
-## Expected value reference (`validateResponse`)
+## Expected value reference (`assertResponse`)
 
 | Form | Behaviour |
 |---|---|
@@ -180,17 +180,17 @@ Then the response should match:
 Use `ScenarioWorld` to share values across steps. Register it as your Cucumber world constructor:
 
 ```javascript
-import { validateResponse, buildRequest, ScenarioWorld } from 'cucumber-express'
+import { assertResponse, buildRequest, ScenarioWorld } from 'cucumber-express'
 import { setWorldConstructor } from '@cucumber/cucumber'
 
 setWorldConstructor(ScenarioWorld)
 ```
 
-Pass `this` as the third argument to `validateResponse` or `buildRequest`:
+Pass `this` as the third argument to `assertResponse` or `buildRequest`:
 
 ```javascript
 Then('the response should match:', function (dataTable) {
-  validateResponse(dataTable, this.response, this)
+  assertResponse(dataTable, this.response, this)
 })
 
 When('I create a user with:', function (dataTable) {
@@ -217,7 +217,7 @@ Then the response should match:
 
 ## Error messages
 
-When `validateResponse` fails, the thrown error lists every failing row:
+When `assertResponse` fails, the thrown error lists every failing row:
 
 ```
 [body.user.name] expected "Jane", got "John"
