@@ -22,12 +22,12 @@
 
 ## 4. Schema Registry & Build
 
-- [ ] 4.1 Implement `SchemaRegistry` class in `src/schema/registry.ts` with `register(name, def)` and `get(name)` methods
-- [ ] 4.2 Implement `SchemaRegistry#build(name)` — evaluates faker calls, embeds sub-schemas, applies `(extends)` base first then remaining rows via `setPath`
+- [x] 4.1 Implement `SchemaRegistry` class in `src/schema/registry.ts` with `register(name, def)` and `get(name)` methods
+- [x] 4.2 Implement `SchemaRegistry#build(name)` — evaluates faker calls, embeds sub-schemas, applies `(extends)` base first then remaining rows via `setPath`
 - [x] 4.3 Add cycle detection in `build` using a resolution stack; throw with the full cycle path on detection — moved to section 2 (validateRegistry)
-- [ ] 4.4 Implement `loadSchemas(glob: string): SchemaRegistry` in `src/schema/load.ts` — validate all files (structural), throw combined error if any fail, parse all files, validate registry (semantic), throw combined error if any fail, return registry
-- [ ] 4.5 Emit a console warning in `loadSchemas` when the glob matches no files
-- [ ] 4.6 Write tests for registry build logic in `test/schema/registry.test.ts` (faker values, embedding, extension, cycles, typed arrays, error cases)
+- [x] 4.4 Implement `loadSchemas(glob: string): SchemaRegistry` in `src/schema/load.ts` — validate all files (structural), throw combined error if any fail, parse all files, validate registry (semantic), throw combined error if any fail, return registry
+- [x] 4.5 Emit a console warning in `loadSchemas` when the glob matches no files
+- [x] 4.6 Write tests for registry build logic in `test/schema/registry.test.ts` (faker values, embedding, extension, cycles, typed arrays, error cases)
 
 ## 5. ScenarioWorld Integration
 
