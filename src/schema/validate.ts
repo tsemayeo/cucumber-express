@@ -76,17 +76,17 @@ function processTableRow(trimmed: string, lineNum: number, fileName: string, sta
 
   const [path, value] = cols
 
-  if (path === '(extends)') {
-    state.extendsCount++
-    if (state.extendsCount > 1) {
-      errors.push(makeError(fileName, `Schema "${state.currentSchema}" has more than one (extends) row`, lineNum, state.currentSchema!))
-    }
-    const msg = validateExtendsValue(value)
+  if (path !== '(extends)') {
+    const msg = validateValue(value)
     if (msg) errors.push(makeError(fileName, msg, lineNum, state.currentSchema!))
     return errors
   }
 
-  const msg = validateValue(value)
+  state.extendsCount++
+  if (state.extendsCount > 1)
+    errors.push(makeError(fileName, `Schema "${state.currentSchema}" has more than one (extends) row`, lineNum, state.currentSchema!))
+  
+  const msg = validateExtendsValue(value)
   if (msg) errors.push(makeError(fileName, msg, lineNum, state.currentSchema!))
   return errors
 }
