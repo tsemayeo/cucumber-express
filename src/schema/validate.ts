@@ -1,7 +1,5 @@
 import type { SchemaDefinition, ValidationError } from './types.js'
-
-const SCHEMA_HEADER_RE     = /^Schema:\s*(.*)$/
-const TABLE_ROW_RE         = /^\s*\|.*\|\s*$/
+import { SCHEMA_HEADER_RE, TABLE_ROW_RE } from './patterns.js'
 const IDENTIFIER_RE        = /^[\w$]+$/
 const RECOGNIZED_PREFIX_RE = /^\((?:int|float|boolean|string|faker|schema|extends|array)\)/
 const FAKER_SYNTAX_RE      = /^\(faker\)\s+[a-zA-Z]+\.[a-zA-Z]+(?:\([^)]*\))?\s*$/
@@ -53,9 +51,6 @@ function validateValue(value: string): string | null {
 
 function processHeader(name: string, lineNum: number, fileName: string, state: ParseState): ValidationError[] {
   const errors: ValidationError[] = []
-  if (state.currentSchema !== null && state.rowCount === 0) {
-    errors.push(makeError(fileName, `Schema "${state.currentSchema}" has no data table rows`, state.schemaLine, state.currentSchema))
-  }
   const msg = validateSchemaName(name)
   if (msg) {
     errors.push(makeError(fileName, msg, lineNum))
@@ -105,8 +100,13 @@ export function validateSchemaFile(content: string, fileName: string): Validatio
     const trimmed = line.trim()
     const headerMatch = SCHEMA_HEADER_RE.exec(trimmed)
 
+    if (state.currentSchema !== null && state.rowCount === 0 && (headerMatch !== null || trimmed === ''))
+      errors.push(makeError(fileName, `Schema "${state.currentSchema}" has no data table rows`, state.schemaLine, state.currentSchema))
+
     if (headerMatch) {
       errors.push(...processHeader(headerMatch[1].trim(), lineNum, fileName, state))
+    } else if (trimmed === '' && state.currentSchema !== null) {
+      state.currentSchema = null
     } else if (TABLE_ROW_RE.test(trimmed) && state.currentSchema !== null) {
       errors.push(...processTableRow(trimmed, lineNum, fileName, state))
     }
@@ -119,10 +119,8 @@ export function validateSchemaFile(content: string, fileName: string): Validatio
   return errors
 }
 
-export function validateRegistry(definitions: SchemaDefinition[]): ValidationError[] {
+function checkDuplicateNames(definitions: SchemaDefinition[]): { allNames: Set<string>, errors: ValidationError[] } {
   const errors: ValidationError[] = []
-
-  // Pass 1: duplicate names
   const nameToFile = new Map<string, string>()
   for (const def of definitions) {
     if (nameToFile.has(def.name)) {
@@ -131,11 +129,12 @@ export function validateRegistry(definitions: SchemaDefinition[]): ValidationErr
       nameToFile.set(def.name, def.fileName)
     }
   }
+  return { allNames: new Set(nameToFile.keys()), errors }
+}
 
-  const allNames      = new Set(nameToFile.keys())
+function checkUnresolvableRefs(definitions: SchemaDefinition[], allNames: Set<string>): { brokenSchemas: Set<string>, errors: ValidationError[] } {
+  const errors: ValidationError[] = []
   const brokenSchemas = new Set<string>()
-
-  // Pass 2: unresolvable references
   for (const def of definitions) {
     for (const row of def.rows) {
       if (row.kind === 'extends') {
@@ -154,8 +153,10 @@ export function validateRegistry(definitions: SchemaDefinition[]): ValidationErr
       }
     }
   }
+  return { brokenSchemas, errors }
+}
 
-  // Pass 3: cycle detection
+function checkCycles(definitions: SchemaDefinition[], brokenSchemas: Set<string>): ValidationError[] {
   const adj = new Map<string, string[]>()
   for (const def of definitions) {
     if (brokenSchemas.has(def.name)) continue
@@ -170,13 +171,16 @@ export function validateRegistry(definitions: SchemaDefinition[]): ValidationErr
     }
     adj.set(def.name, refs.filter(r => !brokenSchemas.has(r)))
   }
-
   const cycle = detectCycle(adj)
-  if (cycle) {
-    const filePath = definitions.find(d => d.name === cycle[0])?.fileName ?? ''
-    errors.push({ fileName: filePath, schemaName: cycle[0], message: `Circular schema reference: ${cycle.join(' → ')}` })
-  }
+  if (!cycle) return []
+  const filePath = definitions.find(d => d.name === cycle[0])?.fileName ?? ''
+  return [{ fileName: filePath, schemaName: cycle[0], message: `Circular schema reference: ${cycle.join(' → ')}` }]
+}
 
+export function validateRegistry(definitions: SchemaDefinition[]): ValidationError[] {
+  const { allNames, errors } = checkDuplicateNames(definitions)
+  const { brokenSchemas, errors: refErrors } = checkUnresolvableRefs(definitions, allNames)
+  errors.push(...refErrors, ...checkCycles(definitions, brokenSchemas))
   return errors
 }
 
