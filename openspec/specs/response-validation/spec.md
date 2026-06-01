@@ -1,7 +1,7 @@
 # Response Validation Spec
 
-### Requirement: Validate object values via dot-path
-The library SHALL export a `validateResponse(dataTable, responseObject, world?)` function. Each row SHALL be treated as a `[path, expectedValue]` pair with no header row. The function SHALL traverse the dot-separated path on `responseObject`, stringify the resolved value, and dispatch on the expected cell using the following priority order:
+### Requirement: Assert object values via dot-path
+The library SHALL export an `assertResponse(dataTable, responseObject, world?)` function. Each row SHALL be treated as a `[path, expectedValue]` pair with no header row. The function SHALL first validate all row paths and values for syntax (see syntax-validation spec); if any syntax errors are found, they SHALL all be thrown together before evaluation begins. The function SHALL then traverse the dot-separated path on `responseObject`, stringify the resolved value, and dispatch on the expected cell using the following priority order:
 
 1. **Capture** — if expected matches `{key}` exactly: store the stringified resolved value in `world.captures` under `key`; the row produces no failure. If expected matches `{key:/regex/}`: test the stringified resolved value against the regex; if it does not match, the row fails; if it matches, store the full value or capture group 1 (if the regex contains a group) in `world.captures` under `key`.
 2. **Built-in specials** — if expected is `<null>`: pass iff value is `null`. If expected is `<present>`: pass iff value is not `null` and not `undefined`.
@@ -68,7 +68,7 @@ Capture rows (`{key}`, `{key:/regex/}`) require `world` to be provided; an error
 - **THEN** no error is thrown and `world.captures` is not consulted
 
 #### Scenario: No world provided, no capture or lookup rows
-- **WHEN** `validateResponse` is called without a `world` argument and no expected cell uses `{key}` or `<key>` forms
+- **WHEN** `assertResponse` is called without a `world` argument and no expected cell uses `{key}` or `<key>` forms
 - **THEN** the function behaves identically to a world-less call
 
 ### Requirement: Collect all failures before throwing
