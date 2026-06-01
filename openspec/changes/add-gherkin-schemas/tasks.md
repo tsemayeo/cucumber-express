@@ -13,12 +13,12 @@
 
 ## 3. Schema File Parser
 
-- [ ] 3.1 Implement `parseSchemaFile(content: string): SchemaDefinition[]` in `src/schema/parse.ts` — split content on `Schema:` headers, parse each block's data table into rows (validation is a precondition; parser may assume well-formed input)
-- [ ] 3.2 Recognise and store `(faker) namespace.method` and `(faker) namespace.method(arg)` value tokens
-- [ ] 3.3 Recognise and store `(schema) Name` embedded schema reference tokens
-- [ ] 3.4 Recognise and store `(extends) Name` base schema row
-- [ ] 3.5 Recognise and store `(array)` (untyped) and `(array) Name` (typed) array value tokens
-- [ ] 3.6 Write tests for schema file parser in `test/schema/parse.test.ts`
+- [x] 3.1 Implement `parseSchemaFile(content: string): SchemaDefinition[]` in `src/schema/parse.ts` — split content on `Schema:` headers, parse each block's data table into rows (validation is a precondition; parser may assume well-formed input)
+- [x] 3.2 Recognise and store `(faker) namespace.method` and `(faker) namespace.method(arg)` value tokens
+- [x] 3.3 Recognise and store `(schema) Name` embedded schema reference tokens
+- [x] 3.4 Recognise and store `(extends) Name` base schema row
+- [x] 3.5 Recognise and store `(array)` (untyped) and `(array) Name` (typed) array value tokens
+- [x] 3.6 Write tests for schema file parser in `test/schema/parse.test.ts`
 
 ## 4. Schema Registry & Build
 
