@@ -31,9 +31,9 @@
 
 ## 5. ScenarioWorld Integration
 
-- [ ] 5.1 Add optional `schemas` property of type `SchemaRegistry` to `ScenarioWorld` in `src/world/index.ts`
-- [ ] 5.2 Implement `ScenarioWorld.withSchemas(glob: string)` static factory — calls `loadSchemas`, stores result as static property, returns a subclass whose constructor sets `this.schemas`
-- [ ] 5.3 Write tests for `withSchemas` in `test/schema/world.test.ts` — registry shared across instances, `captures` still present, empty-glob warning
+- [x] 5.1 Add optional `schemas` property of type `SchemaRegistry` to `ScenarioWorld` in `src/world/index.ts`
+- [x] 5.2 Implement `ScenarioWorld.withSchemas(glob: string)` static factory — calls `loadSchemas`, stores result as static property, returns a subclass whose constructor sets `this.schemas`
+- [x] 5.3 Write tests for `withSchemas` in `test/schema/world.test.ts` — registry shared across instances, `captures` still present, empty-glob warning
 
 ## 6. `buildFromSchema`
 
