@@ -61,6 +61,9 @@ export function validateBuildValue(value: string): string | null {
   if (!typeMatch) return null
 
   const [, type, valueStr] = typeMatch
+  if (valueStr === '<null>' || valueStr === '<empty>') {
+    return `Invalid value "${value}": "${valueStr}" is a reserved token and cannot be combined with a type cast prefix`
+  }
   if (LOOKUP_REGEX.test(valueStr)) return null
 
   switch (type) {

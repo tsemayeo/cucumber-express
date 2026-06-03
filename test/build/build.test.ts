@@ -67,6 +67,30 @@ describe('buildRequest — world lookup', () => {
   })
 })
 
+describe('buildRequest — reserved tokens', () => {
+  it('<null> sets a field to null', () => {
+    const world = new ScenarioWorld()
+    const result = buildRequest(schema, table([['body.user.name', '<null>']]), world)
+    expect(result.body.user.name).toBeNull()
+  })
+
+  it('<null> works without a world argument', () => {
+    const result = buildRequest(schema, table([['body.user.name', '<null>']]))
+    expect(result.body.user.name).toBeNull()
+  })
+
+  it('<empty> sets a field to []', () => {
+    const world = new ScenarioWorld()
+    const result = buildRequest(schema, table([['body.items', '<empty>']]), world)
+    expect(result.body.items).toEqual([])
+  })
+
+  it('<empty> works without a world argument', () => {
+    const result = buildRequest(schema, table([['body.items', '<empty>']]))
+    expect(result.body.items).toEqual([])
+  })
+})
+
 describe('buildRequest — combined cast + lookup', () => {
   it('(int) <key> resolves then casts', () => {
     const world = new ScenarioWorld()

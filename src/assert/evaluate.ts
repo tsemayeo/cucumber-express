@@ -5,7 +5,7 @@ import { resolvePath } from './resolve.js'
 
 const CAPTURE_PLAIN_REGEX = /^\{([^}:/]+)\}$/
 const CAPTURE_GATE_REGEX  = /^\{([^}:/]+):\/(.+)\/\}$/
-const LOOKUP_REGEX        = /^<(?!null>|present>)([^>]+)>$/
+const LOOKUP_REGEX        = /^<(?!null>|present>|empty>)([^>]+)>$/
 const REGEX_ASSERT_REGEX  = /^\/(.+)\/$/
 
 function handleCapturePlain(expected: string, result: ResolveResult, world?: ScenarioWorld): null {
@@ -36,6 +36,7 @@ function resolveLookup(expected: string, world?: ScenarioWorld): string {
 function matches(value: unknown, expected: string): boolean {
   if (expected === '<null>')    return value === null
   if (expected === '<present>') return value !== null && value !== undefined
+  if (expected === '<empty>')   return Array.isArray(value) && value.length === 0
   const regexMatch = REGEX_ASSERT_REGEX.exec(expected)
   if (regexMatch) return new RegExp(regexMatch[1]).test(String(value))
   return String(value) === expected
