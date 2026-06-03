@@ -57,20 +57,21 @@ Valid path syntax:
 - **THEN** it is treated as a syntax error, not silently as a literal string
 
 #### Scenario: Valid assert values pass validation
-- **WHEN** a value is a literal string, `<null>`, `<present>`, `{key}`, `{key:/^J/}`, `<key>`, or `/^J/`
+- **WHEN** a value is a literal string, `<null>`, `<present>`, `<empty>`, `{key}`, `{key:/^J/}`, `<key>`, or `/^J/`
 - **THEN** no syntax error is thrown for that value
 
 ---
 
 ### Requirement: Validate buildRequest value syntax before processing
-`buildRequest` SHALL validate every value string in the DataTable. A value is syntactically invalid if a type cast prefix is used with a value that cannot be cast to that type. All syntax errors across all rows SHALL be collected and thrown together.
+`buildRequest` SHALL validate every value string in the DataTable. A value is syntactically invalid if a type cast prefix is used with a value that cannot be cast to that type, or if a type cast prefix is combined with a reserved token (`<null>` or `<empty>`). All syntax errors across all rows SHALL be collected and thrown together.
 
 Invalid build value forms:
 - `(int) x` where `x` (after stripping a `<key>` lookup) is not a valid integer string
 - `(float) x` where `x` is not a valid finite float string
 - `(boolean) x` where `x` is not exactly `"true"` or `"false"`
+- `(int) <null>`, `(float) <null>`, `(boolean) <null>`, or any cast prefix combined with `<null>` or `<empty>`
 
-Combined cast + lookup forms such as `(int) <key>` are syntactically valid; the resolved value is only known at runtime.
+Combined cast + lookup forms such as `(int) <key>` are syntactically valid for non-reserved keys; the resolved value is only known at runtime.
 
 #### Scenario: Non-numeric int rejected
 - **WHEN** a value is `(int) abc`
@@ -92,8 +93,16 @@ Combined cast + lookup forms such as `(int) <key>` are syntactically valid; the 
 - **WHEN** a value is `(int) <count>` or `(float) <price>`
 - **THEN** no syntax error is thrown (runtime check only)
 
+#### Scenario: Cast combined with `<null>` is rejected
+- **WHEN** a value is `(int) <null>` or `(boolean) <null>`
+- **THEN** a syntax error is thrown
+
+#### Scenario: Cast combined with `<empty>` is rejected
+- **WHEN** a value is `(int) <empty>` or `(string) <empty>`
+- **THEN** a syntax error is thrown
+
 #### Scenario: Valid build values pass validation
-- **WHEN** a value is `(int) 30`, `(float) 9.99`, `(boolean) true`, `(boolean) false`, `hello`, or `<key>`
+- **WHEN** a value is `(int) 30`, `(float) 9.99`, `(boolean) true`, `(boolean) false`, `hello`, `<key>`, `<null>`, or `<empty>`
 - **THEN** no syntax error is thrown for that value
 
 #### Scenario: All value errors reported together
