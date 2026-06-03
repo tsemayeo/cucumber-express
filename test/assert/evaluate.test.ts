@@ -7,6 +7,7 @@ const obj = {
     user: { name: 'John' },
     status: 200,
     meta: null,
+    emptyList: [],
     items: [
       { status: 'active',   type: 'product', category: 'item', active: true,  deleted: false },
       { status: 'pending',  type: 'product', category: 'item', active: true,  deleted: false },
@@ -88,6 +89,32 @@ describe('evaluate', () => {
     const result = evaluate('body.meta', '<present>', obj)
     expect(result).toContain('body.meta')
     expect(result).toContain('<present>')
+  })
+
+  it('<empty> passes for an empty array', () => {
+    expect(evaluate('body.emptyList', '<empty>', obj)).toBeNull()
+  })
+
+  it('<empty> fails for a non-empty array', () => {
+    const result = evaluate('body.items', '<empty>', obj)
+    expect(result).toContain('body.items')
+    expect(result).toContain('<empty>')
+  })
+
+  it('<empty> fails for null', () => {
+    const result = evaluate('body.meta', '<empty>', obj)
+    expect(result).toContain('body.meta')
+    expect(result).toContain('<empty>')
+  })
+
+  it('<empty> fails for a non-array value', () => {
+    const result = evaluate('body.user.name', '<empty>', obj)
+    expect(result).toContain('body.user.name')
+    expect(result).toContain('<empty>')
+  })
+
+  it('<empty> works without a world argument', () => {
+    expect(evaluate('body.emptyList', '<empty>', obj)).toBeNull()
   })
 
   it('<null> works through [*] operator: at least one null', () => {
@@ -175,5 +202,10 @@ describe('evaluate — captures, lookups and regex', () => {
   it('<present> is handled as built-in special, not a capture lookup', () => {
     const world = new ScenarioWorld()
     expect(evaluate('body.user.name', '<present>', obj, world)).toBeNull()
+  })
+
+  it('<empty> is handled as built-in special, not a capture lookup', () => {
+    const world = new ScenarioWorld()
+    expect(evaluate('body.emptyList', '<empty>', obj, world)).toBeNull()
   })
 })

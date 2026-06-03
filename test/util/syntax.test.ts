@@ -105,6 +105,10 @@ describe('validateAssertValue — valid values', () => {
     expect(validateAssertValue('<present>')).toBeNull()
   })
 
+  it('accepts <empty>', () => {
+    expect(validateAssertValue('<empty>')).toBeNull()
+  })
+
   it('accepts a plain capture {key}', () => {
     expect(validateAssertValue('{key}')).toBeNull()
   })
@@ -148,6 +152,22 @@ describe('validateBuildValue — invalid values', () => {
   it('rejects (boolean) with empty value', () => {
     expect(validateBuildValue('(boolean) ')).not.toBeNull()
   })
+
+  it('rejects (int) combined with <null>', () => {
+    expect(validateBuildValue('(int) <null>')).not.toBeNull()
+  })
+
+  it('rejects (boolean) combined with <null>', () => {
+    expect(validateBuildValue('(boolean) <null>')).not.toBeNull()
+  })
+
+  it('rejects (int) combined with <empty>', () => {
+    expect(validateBuildValue('(int) <empty>')).not.toBeNull()
+  })
+
+  it('rejects (string) combined with <empty>', () => {
+    expect(validateBuildValue('(string) <empty>')).not.toBeNull()
+  })
 })
 
 describe('validateBuildValue — valid values', () => {
@@ -185,6 +205,14 @@ describe('validateBuildValue — valid values', () => {
 
   it('accepts cast + lookup (float) <price>', () => {
     expect(validateBuildValue('(float) <price>')).toBeNull()
+  })
+
+  it('accepts bare <null>', () => {
+    expect(validateBuildValue('<null>')).toBeNull()
+  })
+
+  it('accepts bare <empty>', () => {
+    expect(validateBuildValue('<empty>')).toBeNull()
   })
 })
 

@@ -13,6 +13,8 @@ export function parseValue(raw: string, world?: ScenarioWorld): unknown {
 
   if (lookupMatch) {
     const key = lookupMatch[1]
+    if (key === 'null')  return null
+    if (key === 'empty') return []
     if (!world) throw new Error(`Lookup "<${key}>" used but no world provided`)
     const captured = world.captures.get(key)
     if (captured === undefined) throw new Error(`Lookup "<${key}>" not found in world.captures`)
