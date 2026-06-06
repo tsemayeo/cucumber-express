@@ -35,14 +35,23 @@
 - [x] 5.2 Implement `ScenarioWorld.withSchemas(glob: string)` static factory — calls `loadSchemas`, stores result as static property, returns a subclass whose constructor sets `this.schemas`
 - [x] 5.3 Write tests for `withSchemas` in `test/schema/world.test.ts` — registry shared across instances, `captures` still present, empty-glob warning
 
-## 6. `buildFromSchema`
+## 6. `(array:N)` Count Support
 
-- [ ] 6.1 Implement `buildFromSchema(name: string, table: DataTable, world: ScenarioWorld): unknown` in `src/build/index.ts` — resolve schema via `world.schemas`, build base object, apply table overrides using existing `parsePath`/`setPath`/`parseValue`
-- [ ] 6.2 Add typed-array auto-construction: when an override targets an out-of-bounds index on a `(array) Name` field, build a `Name` instance and append before applying the field override
-- [ ] 6.3 Throw descriptively when schema name not found or world not provided
-- [ ] 6.4 Write tests for `buildFromSchema` in `test/build/buildFromSchema.test.ts` (base build, overrides, type casts, world captures, auto-construction, untyped array OOB error)
+- [x] 6.1 Add `count?: number` to the `array` variant of `SchemaValueToken` in `src/schema/types.ts`
+- [x] 6.2 Update `validateSchemaFile` in `src/schema/validate.ts` — extend `RECOGNIZED_PREFIX_RE` to match `(array:N)` variant; add validation that `(array:N)` with N > 0 requires a type name
+- [x] 6.3 Update `parseSchemaFile` in `src/schema/parse.ts` — extract count from `(array:N)` and `(array:N) Name` forms using `/^\(array(?::(\d+))?\)/`; store as `count` on the token
+- [x] 6.4 Update `SchemaRegistry#build()` in `src/schema/registry.ts` — when array token has `count > 0`, pre-populate via `Array.from({ length: count }, () => this.build(itemSchema!))` and attach `__itemSchema`
+- [x] 6.5 Add tests for `(array:N)` to existing test files — `test/schema/validate.test.ts` (valid and invalid forms), `test/schema/parse.test.ts` (count extracted), `test/schema/registry.test.ts` (pre-populated array, correct length, independent items)
 
-## 7. Exports & Documentation
+## 7. `buildFromSchema`
 
-- [ ] 7.1 Export `buildFromSchema` and `SchemaRegistry` type from `src/index.ts`
-- [ ] 7.2 Update README — add `buildFromSchema` usage, schema file format reference (all prefixes), `withSchemas` setup, and peer dependency note for `@faker-js/faker`
+- [ ] 7.1 Implement `buildFromSchema(name: string, table: DataTable, world: ScenarioWorld): unknown` in `src/build/index.ts` — resolve schema via `world.schemas`, build base object, apply table overrides using existing `parsePath`/`setPath`/`parseValue`
+- [ ] 7.2 Add typed-array auto-construction: when an override targets an out-of-bounds index on a `(array) Name` field, build a `Name` instance and append before applying the field override
+- [ ] 7.3 Handle `(array:N)` override values — resolve `__itemSchema` from the current field, replace array with N built items; throw if N > 0 and array is untyped, throw if target field is not an array
+- [ ] 7.4 Throw descriptively when schema name not found or world not provided
+- [ ] 7.5 Write tests for `buildFromSchema` in `test/build/buildFromSchema.test.ts` (base build, overrides, type casts, world captures, auto-construction, untyped array OOB error, `(array:N)` population, `(array:0)`, `(array:N)` on untyped throws, index overrides compose on top)
+
+## 8. Exports & Documentation
+
+- [ ] 8.1 Export `buildFromSchema` and `SchemaRegistry` type from `src/index.ts`
+- [ ] 8.2 Update README — add `buildFromSchema` usage, schema file format reference (all prefixes including `(array:N)`), `withSchemas` setup, and peer dependency note for `@faker-js/faker`

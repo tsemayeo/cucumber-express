@@ -127,8 +127,8 @@ If schema A embeds or extends schema B which (transitively) embeds or extends sc
 
 ---
 
-### Requirement: `(array)` prefix produces an empty array
-A value of `(array)` SHALL set the field to an empty array `[]` with no declared item type. A value of `(array) <Name>` SHALL set the field to an empty typed array whose item type is the named schema. The type annotation is used during `buildFromSchema` override to auto-construct items at new indices.
+### Requirement: `(array)` prefix declares an array field
+A value of `(array)` SHALL set the field to an empty array `[]` with no declared item type. A value of `(array) <Name>` SHALL set the field to an empty typed array whose item type is the named schema. A value of `(array:N) <Name>` (where N is a non-negative integer) SHALL pre-populate the array with N independently built instances of the named schema. `(array:0) <Name>` is equivalent to `(array) <Name>`. The type annotation is used during `buildFromSchema` override to auto-construct items at new indices. `(array:N)` without a type name SHALL be a validation error when N is greater than zero, as there is no item schema to construct from.
 
 #### Scenario: `(array)` without type produces empty array
 - **WHEN** a schema row has value `(array)`
@@ -137,6 +137,18 @@ A value of `(array)` SHALL set the field to an empty array `[]` with no declared
 #### Scenario: `(array) Name` produces empty typed array
 - **WHEN** a schema row has value `(array) CartItem`
 - **THEN** the built object has an empty array at that path, annotated with item type `CartItem`
+
+#### Scenario: `(array:N) Name` pre-populates N items
+- **WHEN** a schema row has value `(array:3) CartItem`
+- **THEN** the built object has an array of 3 independently built `CartItem` objects at that path
+
+#### Scenario: `(array:0) Name` is equivalent to `(array) Name`
+- **WHEN** a schema row has value `(array:0) CartItem`
+- **THEN** the built object has an empty typed array at that path, equivalent to `(array) CartItem`
+
+#### Scenario: `(array:N)` without type name and N greater than zero is a validation error
+- **WHEN** a schema row has value `(array:3)` with no type name
+- **THEN** schema validation reports an error stating a type name is required when N is greater than zero
 
 #### Scenario: Index notation pre-populates array items
 - **WHEN** a schema has rows `| items[0] | (schema) CartItem |` and `| items[1] | (schema) CartItem |`

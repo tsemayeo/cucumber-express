@@ -1,7 +1,7 @@
 import type { SchemaDefinition, ValidationError } from './types.js'
 import { SCHEMA_HEADER_RE, TABLE_ROW_RE } from './patterns.js'
 const IDENTIFIER_RE        = /^[\w$]+$/
-const RECOGNIZED_PREFIX_RE = /^\((?:int|float|boolean|string|faker|schema|extends|array)\)/
+const RECOGNIZED_PREFIX_RE = /^\((?:int|float|boolean|string|faker|schema|extends|array(?::\d+)?)\)/
 const FAKER_SYNTAX_RE      = /^\(faker\)\s+[a-zA-Z]+\.[a-zA-Z]+(?:\([^)]*\))?\s*$/
 
 type ParseState = {
@@ -42,9 +42,12 @@ function validateValue(value: string): string | null {
     const name = value.slice('(schema)'.length).trim()
     if (!name || !IDENTIFIER_RE.test(name)) return `(schema) name "${name}" is invalid — must contain only letters, digits, _ or $`
   }
-  if (value.startsWith('(array)')) {
-    const name = value.slice('(array)'.length).trim()
+  if (value.startsWith('(array')) {
+    const m = /^\(array(?::(\d+))?\)(.*)/.exec(value)!
+    const count = m[1] ? Number(m[1]) : 0
+    const name  = m[2].trim()
     if (name && !IDENTIFIER_RE.test(name)) return `(array) item type "${name}" is invalid — must contain only letters, digits, _ or $`
+    if (count > 0 && !name) return `(array:${count}) requires a type name`
   }
   return null
 }

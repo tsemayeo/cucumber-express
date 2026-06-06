@@ -121,6 +121,51 @@ describe('SchemaRegistry#build', () => {
     expect((obj.items as any).__itemSchema).toBe('CartItem')
   })
 
+  it('(array:N) typed pre-populates with N items', () => {
+    const item = makeDef('Item', [
+      { kind: 'field', path: 'id', value: { kind: 'literal', value: '(int) 1' } },
+    ])
+    const r = makeRegistry(item, makeDef('Order', [
+      { kind: 'field', path: 'items', value: { kind: 'array', itemSchema: 'Item', count: 3 } },
+    ]))
+    const obj = r.build('Order') as { items: unknown[] }
+    expect(obj.items).toHaveLength(3)
+  })
+
+  it('(array:N) items are independently built objects', () => {
+    const item = makeDef('Item', [
+      { kind: 'field', path: 'id', value: { kind: 'literal', value: '(int) 1' } },
+    ])
+    const r = makeRegistry(item, makeDef('Order', [
+      { kind: 'field', path: 'items', value: { kind: 'array', itemSchema: 'Item', count: 2 } },
+    ]))
+    const obj = r.build('Order') as { items: object[] }
+    expect(obj.items[0]).not.toBe(obj.items[1])
+  })
+
+  it('(array:N) preserves __itemSchema', () => {
+    const item = makeDef('Item', [
+      { kind: 'field', path: 'x', value: { kind: 'literal', value: '1' } },
+    ])
+    const r = makeRegistry(item, makeDef('Order', [
+      { kind: 'field', path: 'items', value: { kind: 'array', itemSchema: 'Item', count: 2 } },
+    ]))
+    const obj = r.build('Order') as { items: unknown[] }
+    expect((obj.items as any).__itemSchema).toBe('Item')
+  })
+
+  it('(array:0) with type name produces empty typed array', () => {
+    const item = makeDef('Item', [
+      { kind: 'field', path: 'x', value: { kind: 'literal', value: '1' } },
+    ])
+    const r = makeRegistry(item, makeDef('Order', [
+      { kind: 'field', path: 'items', value: { kind: 'array', itemSchema: 'Item', count: 0 } },
+    ]))
+    const obj = r.build('Order') as { items: unknown[] }
+    expect(obj.items).toHaveLength(0)
+    expect((obj.items as any).__itemSchema).toBe('Item')
+  })
+
   it('throws descriptively when schema not found', () => {
     const r = new SchemaRegistry()
     expect(() => r.build('Missing')).toThrow('Schema "Missing" not found in registry')

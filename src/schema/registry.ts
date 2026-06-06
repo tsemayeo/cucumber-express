@@ -36,12 +36,22 @@ export class SchemaRegistry {
       } else if (token.kind === 'schema') {
         value = this.build(token.name)
       } else if (token.kind === 'array') {
-        value = token.itemSchema ? Object.assign([], { __itemSchema: token.itemSchema }) as TypedArray : []
+        value = this.buildArray(token.itemSchema, token.count)
       }
 
       setPath(parsePath(path), obj, value)
     }
 
     return obj
+  }
+
+  private buildArray(itemSchema: string | undefined, count: number | undefined): unknown[] {
+    if (count !== undefined && count > 0) {
+      return Object.assign(
+        Array.from({ length: count }, () => this.build(itemSchema!)),
+        { __itemSchema: itemSchema }
+      ) as TypedArray
+    }
+    return itemSchema ? Object.assign([], { __itemSchema: itemSchema }) as TypedArray : []
   }
 }

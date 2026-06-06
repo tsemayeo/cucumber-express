@@ -52,3 +52,36 @@ When a data table override targets an index that does not yet exist on a typed a
 #### Scenario: Untyped array does not auto-construct
 - **WHEN** a schema has `| tags | (array) |` (no type) and a table row overrides `tags[0]`
 - **THEN** an error is thrown stating the index is out of bounds (consistent with `buildRequest` behaviour)
+
+---
+
+### Requirement: `(array:N)` in override table declares array population count
+`buildFromSchema` SHALL support `(array:N)` as a value in the override data table, where the path targets an array field and N is a non-negative integer. The field SHALL be replaced with exactly N freshly built instances of the item schema declared on that field, each with full schema defaults populated. Schema-defaulted items at that path are discarded and replaced. Index overrides on the same field in the same table are applied on top after population.
+
+#### Scenario: `(array:N)` populates N items with schema defaults
+- **WHEN** a schema has `| items | (array) CartItem |` and a table row has `| items | (array:3) |`
+- **THEN** the returned object has `items` as an array of 3 independently built `CartItem` objects with their defaults
+
+#### Scenario: `(array:N)` replaces schema-defaulted items
+- **WHEN** the schema pre-populates `items[0]` and `items[1]` via `(array:2) CartItem` and a table row has `| items | (array:1) |`
+- **THEN** the returned object has `items` as an array of exactly 1 freshly built item
+
+#### Scenario: Index overrides apply on top of `(array:N)` population
+- **WHEN** a table has `| items | (array:3) |` and `| items[0].name | Special |`
+- **THEN** `items[0].name` is `"Special"` and all other fields on `items[0]` and the remaining items retain their `CartItem` defaults
+
+#### Scenario: `(array:0)` produces an empty array
+- **WHEN** a table row has `| items | (array:0) |` for a typed array field
+- **THEN** the field is set to `[]`
+
+#### Scenario: `(array:0)` on an untyped array produces an empty array
+- **WHEN** a schema has `| tags | (array) |` and a table row has `| tags | (array:0) |`
+- **THEN** the field is set to `[]`
+
+#### Scenario: `(array:N)` on an untyped array throws when N is greater than zero
+- **WHEN** a schema has `| tags | (array) |` and a table row has `| tags | (array:2) |`
+- **THEN** an error is thrown stating that `(array:N)` requires a typed array when N is greater than zero
+
+#### Scenario: `(array:N)` on a non-array field throws
+- **WHEN** a table row has `| name | (array:3) |` and `name` is not an array field in the schema
+- **THEN** an error is thrown stating that `(array:N)` is only valid for array fields

@@ -2,7 +2,7 @@ export type SchemaValueToken =
   | { kind: 'literal'; value: string }
   | { kind: 'faker';   path: string; arg?: string | number }
   | { kind: 'schema';  name: string }
-  | { kind: 'array';   itemSchema?: string }
+  | { kind: 'array';   itemSchema?: string; count?: number }
 
 export type SchemaRow =
   | { kind: 'field';   path: string; value: SchemaValueToken }
