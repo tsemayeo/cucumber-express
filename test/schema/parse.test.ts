@@ -65,6 +65,24 @@ describe('parseSchemaFile', () => {
     expect((def.rows[0] as any).value.itemSchema).toBeUndefined()
   })
 
+  it('(array:N) with type name', () => {
+    const content = 'Schema: Order\n  | items | (array:3) OrderItem |'
+    const [def] = parseSchemaFile(content, 'f.feature')
+    expect(def.rows[0]).toEqual({ kind: 'field', path: 'items', value: { kind: 'array', itemSchema: 'OrderItem', count: 3 } })
+  })
+
+  it('(array:0) with type name', () => {
+    const content = 'Schema: Order\n  | items | (array:0) OrderItem |'
+    const [def] = parseSchemaFile(content, 'f.feature')
+    expect(def.rows[0]).toEqual({ kind: 'field', path: 'items', value: { kind: 'array', itemSchema: 'OrderItem', count: 0 } })
+  })
+
+  it('(array:N) without type name parses count', () => {
+    const content = 'Schema: Order\n  | items | (array:1) |'
+    const [def] = parseSchemaFile(content, 'f.feature')
+    expect(def.rows[0]).toEqual({ kind: 'field', path: 'items', value: { kind: 'array', count: 1 } })
+  })
+
   it('(int) prefix falls through to literal', () => {
     const content = 'Schema: Product\n  | quantity | (int) 42 |'
     const [def] = parseSchemaFile(content, 'f.feature')

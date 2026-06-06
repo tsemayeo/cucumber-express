@@ -17,9 +17,13 @@ function parseValue(raw: string): SchemaValueToken {
     return { kind: 'schema', name: raw.slice('(schema)'.length).trim() }
   }
 
-  if (raw.startsWith('(array)')) {
-    const name = raw.slice('(array)'.length).trim()
-    return name ? { kind: 'array', itemSchema: name } : { kind: 'array' }
+  if (raw.startsWith('(array')) {
+    const m = /^\(array(?::(\d+))?\)\s*(.*)/.exec(raw)!
+    const count      = m[1] !== undefined ? Number(m[1]) : undefined
+    const itemSchema = m[2].trim() || undefined
+    return count !== undefined
+      ? { kind: 'array', itemSchema, count }
+      : { kind: 'array', itemSchema }
   }
 
   return { kind: 'literal', value: raw }

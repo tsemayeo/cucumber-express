@@ -36,6 +36,23 @@ describe('validateSchemaFile', () => {
     const content = 'Schema: $User\n  | x | y |'
     expect(validateSchemaFile(content, 'f.feature')).toEqual([])
   })
+
+  it('accepts (array:N) with a type name', () => {
+    const content = 'Schema: Order\n  | items | (array:3) OrderItem |'
+    expect(validateSchemaFile(content, 'f.feature')).toEqual([])
+  })
+
+  it('accepts (array:0) with a type name', () => {
+    const content = 'Schema: Order\n  | items | (array:0) OrderItem |'
+    expect(validateSchemaFile(content, 'f.feature')).toEqual([])
+  })
+
+  it('rejects (array:N) without a type name', () => {
+    const content = 'Schema: Order\n  | items | (array:3) |'
+    const errors = validateSchemaFile(content, 'f.feature')
+    expect(errors).toHaveLength(1)
+    expect(errors[0].message).toContain('requires a type name')
+  })
 })
 
 // ── validateRegistry ──────────────────────────────────────────────────────────
