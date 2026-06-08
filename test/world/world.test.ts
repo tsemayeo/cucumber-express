@@ -12,4 +12,10 @@ describe('ScenarioWorld', () => {
     world.captures.set('userId', 'abc-123')
     expect(world.captures.get('userId')).toBe('abc-123')
   })
+
+  it('request and response are null on construction', () => {
+    const world = new ScenarioWorld()
+    expect(world.request).toBeNull()
+    expect(world.response).toBeNull()
+  })
 })
