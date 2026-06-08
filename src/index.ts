@@ -1,3 +1,4 @@
 export { assertResponse } from './assert/index.js'
-export { buildRequest } from './build/index.js'
+export { buildRequest, buildFromSchema } from './build/index.js'
 export { ScenarioWorld } from './world/index.js'
+export type { SchemaRegistry } from './schema/registry.js'

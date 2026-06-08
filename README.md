@@ -6,9 +6,10 @@ A cucumber-js helper for validating response objects and building request object
 
 ```bash
 npm install cucumber-express
+npm install --save-dev @cucumber/cucumber @faker-js/faker
 ```
 
-`@cucumber/cucumber` is a peer dependency and must be installed separately.
+`@cucumber/cucumber` and `@faker-js/faker` are peer dependencies and must be installed separately. `@faker-js/faker` is only required if your schema files use the `(faker)` prefix.
 
 ## `assertResponse`
 
@@ -126,6 +127,103 @@ When I place an order with:
   | body.items[0].name | Widget      |
   | body.items[1].qty  | (int) 5     |
 ```
+
+## Schema-based request building
+
+Use `buildFromSchema` when you want to define request shapes in `.feature` files as named schemas, rather than inline JavaScript factory functions. Schemas support faker generation, sub-schema embedding, inheritance, and typed arrays — all shareable across steps and scenarios.
+
+### `withSchemas` setup
+
+Call `ScenarioWorld.withSchemas(glob)` once to load all matching `.feature` schema files and return a subclass with `this.schemas` populated. Use it as your Cucumber world constructor:
+
+```javascript
+import { ScenarioWorld } from 'cucumber-express'
+import { setWorldConstructor } from '@cucumber/cucumber'
+
+const World = ScenarioWorld.withSchemas('features/**/*.feature')
+setWorldConstructor(World)
+```
+
+### Schema file format
+
+Define schemas in `.feature` files using `Schema:` headers and two-column data tables:
+
+```gherkin
+Schema: User
+  | role  | member                      |
+  | name  | (faker) person.fullName     |
+  | email | (faker) internet.email      |
+
+Schema: Address
+  | line1   | (faker) location.streetAddress |
+  | city    | (faker) location.city          |
+  | country | GB                             |
+
+Schema: Order
+  | (extends) | User                    |
+  | address   | (schema) Address        |
+  | items     | (array:2) CartItem      |
+  | createdAt | (faker) date.recent     |
+
+Schema: CartItem
+  | name  | (faker) commerce.productName |
+  | qty   | (int) 1                      |
+  | price | (float) 9.99                 |
+```
+
+All recognised value prefixes:
+
+| Value form | Produces |
+|---|---|
+| `member` | String literal |
+| `(int) 0` | Integer |
+| `(float) 0.0` | Float |
+| `(boolean) true` | Boolean |
+| `(string) text` | Forced string |
+| `(faker) internet.email` | Faker-generated value |
+| `(faker) number.int(100)` | Faker with argument |
+| `(schema) Address` | Embedded sub-schema |
+| `(extends) Base` | Inherit all fields from Base schema |
+| `(array)` | Empty untyped array |
+| `(array) CartItem` | Empty typed array (auto-extends on OOB index) |
+| `(array:3) CartItem` | Pre-populated with 3 built CartItem instances |
+
+### `buildFromSchema`
+
+Call `buildFromSchema` inside a step definition, passing the schema name, the `DataTable`, and `this`. It builds the named schema as the base object and applies table overrides on top:
+
+```javascript
+import { buildFromSchema } from 'cucumber-express'
+
+When('I create an order with:', function (dataTable) {
+  this.request = buildFromSchema('Order', dataTable, this)
+})
+```
+
+```gherkin
+When I create an order with:
+  | items         | (array:2)   |
+  | items[0].name | Widget      |
+  | items[1].qty  | (int) 5     |
+```
+
+Table overrides support the same path and value syntax as `buildRequest` — type casts, world lookups, `<null>`, `<empty>`. Two additional behaviours apply:
+
+**Typed array auto-extension** — writing to an out-of-bounds index on a typed array automatically builds and inserts items up to that index with schema defaults:
+
+```gherkin
+| items[2].name | Special |
+```
+
+If `items` was empty, this creates items 0, 1, and 2 — items 0 and 1 get schema defaults, item 2 gets `name` overridden.
+
+**`(array:N)` override** — replaces the entire array field with N freshly built items. The field must be a typed array in the schema:
+
+```gherkin
+| items | (array:3) |
+```
+
+Collection operators (`[*]`, `[+]`, `[-]`) are not valid in build tables.
 
 ## Path syntax
 

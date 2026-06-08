@@ -53,5 +53,5 @@
 
 ## 8. Exports & Documentation
 
-- [ ] 8.1 Export `buildFromSchema` and `SchemaRegistry` type from `src/index.ts`
-- [ ] 8.2 Update README — add `buildFromSchema` usage, schema file format reference (all prefixes including `(array:N)`), `withSchemas` setup, and peer dependency note for `@faker-js/faker`
+- [x] 8.1 Export `buildFromSchema` and `SchemaRegistry` type from `src/index.ts`
+- [x] 8.2 Update README — add `buildFromSchema` usage, schema file format reference (all prefixes including `(array:N)`), `withSchemas` setup, and peer dependency note for `@faker-js/faker`
