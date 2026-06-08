@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { DataTable } from '@cucumber/cucumber'
-import { validatePath, validateAssertValue, validateBuildValue } from '../../src/util/syntax.js'
+import { validatePath, validateAssertValue, validateBuildValue, validateBuildPathFromSchema, validateBuildValueFromSchema } from '../../src/util/syntax.js'
 import { assertResponse } from '../../src/assert/index.js'
 import { buildRequest } from '../../src/build/index.js'
 
@@ -213,6 +213,86 @@ describe('validateBuildValue — valid values', () => {
 
   it('accepts bare <empty>', () => {
     expect(validateBuildValue('<empty>')).toBeNull()
+  })
+})
+
+// ─── validateBuildPathFromSchema ───────────────────────────────────────────
+
+describe('validateBuildPathFromSchema — invalid paths', () => {
+  it('rejects [*] collection operator', () => {
+    expect(validateBuildPathFromSchema('items[*].name')).not.toBeNull()
+  })
+
+  it('rejects [+] collection operator', () => {
+    expect(validateBuildPathFromSchema('items[+].active')).not.toBeNull()
+  })
+
+  it('rejects [-] collection operator', () => {
+    expect(validateBuildPathFromSchema('items[-].deleted')).not.toBeNull()
+  })
+
+  it('still rejects base path errors (delegates to validatePath)', () => {
+    expect(validateBuildPathFromSchema('items[]')).not.toBeNull()
+  })
+})
+
+describe('validateBuildPathFromSchema — valid paths', () => {
+  it('accepts a simple key', () => {
+    expect(validateBuildPathFromSchema('name')).toBeNull()
+  })
+
+  it('accepts a nested key', () => {
+    expect(validateBuildPathFromSchema('order.items')).toBeNull()
+  })
+
+  it('accepts a numeric index', () => {
+    expect(validateBuildPathFromSchema('items[0].qty')).toBeNull()
+  })
+})
+
+// ─── validateBuildValueFromSchema ──────────────────────────────────────────
+
+describe('validateBuildValueFromSchema — invalid values', () => {
+  it('rejects (array:) with no number', () => {
+    expect(validateBuildValueFromSchema('(array:)')).not.toBeNull()
+  })
+
+  it('rejects (array:abc) with non-numeric count', () => {
+    expect(validateBuildValueFromSchema('(array:abc)')).not.toBeNull()
+  })
+
+  it('rejects (array:-1) with negative count', () => {
+    expect(validateBuildValueFromSchema('(array:-1)')).not.toBeNull()
+  })
+
+  it('rejects (array:3) with trailing text', () => {
+    expect(validateBuildValueFromSchema('(array:3) ExtraText')).not.toBeNull()
+  })
+
+  it('rejects (int) with invalid value (delegates to validateBuildValue)', () => {
+    expect(validateBuildValueFromSchema('(int) abc')).not.toBeNull()
+  })
+})
+
+describe('validateBuildValueFromSchema — valid values', () => {
+  it('accepts (array:3)', () => {
+    expect(validateBuildValueFromSchema('(array:3)')).toBeNull()
+  })
+
+  it('accepts (array:0)', () => {
+    expect(validateBuildValueFromSchema('(array:0)')).toBeNull()
+  })
+
+  it('accepts (int) with valid integer (delegates to validateBuildValue)', () => {
+    expect(validateBuildValueFromSchema('(int) 5')).toBeNull()
+  })
+
+  it('accepts a bare string', () => {
+    expect(validateBuildValueFromSchema('hello')).toBeNull()
+  })
+
+  it('accepts a lookup <key>', () => {
+    expect(validateBuildValueFromSchema('<key>')).toBeNull()
   })
 })
 

@@ -45,11 +45,11 @@
 
 ## 7. `buildFromSchema`
 
-- [ ] 7.1 Implement `buildFromSchema(name: string, table: DataTable, world: ScenarioWorld): unknown` in `src/build/index.ts` — resolve schema via `world.schemas`, build base object, apply table overrides using existing `parsePath`/`setPath`/`parseValue`
-- [ ] 7.2 Add typed-array auto-construction: when an override targets an out-of-bounds index on a `(array) Name` field, build a `Name` instance and append before applying the field override
-- [ ] 7.3 Handle `(array:N)` override values — resolve `__itemSchema` from the current field, replace array with N built items; throw if N > 0 and array is untyped, throw if target field is not an array
-- [ ] 7.4 Throw descriptively when schema name not found or world not provided
-- [ ] 7.5 Write tests for `buildFromSchema` in `test/build/buildFromSchema.test.ts` (base build, overrides, type casts, world captures, auto-construction, untyped array OOB error, `(array:N)` population, `(array:0)`, `(array:N)` on untyped throws, index overrides compose on top)
+- [x] 7.1 Implement `buildFromSchema(name: string, table: DataTable, world: ScenarioWorld): unknown` in `src/build/index.ts` — resolve schema via `world.schemas`, build base object, apply table overrides using existing `parsePath`/`setPath`/`parseValue`
+- [x] 7.2 Add typed-array auto-construction: when an override targets an out-of-bounds index on a `(array) Name` field, build a `Name` instance and append before applying the field override
+- [x] 7.3 Handle `(array:N)` override values — resolve `__itemSchema` from the current field, replace array with N built items; throw if N > 0 and array is untyped, throw if target field is not an array
+- [x] 7.4 Throw descriptively when schema name not found or world not provided
+- [x] 7.5 Write tests for `buildFromSchema` in `test/build/buildFromSchema.test.ts` (base build, overrides, type casts, world captures, auto-construction, untyped array OOB error, `(array:N)` population, `(array:0)`, `(array:N)` on untyped throws, index overrides compose on top)
 
 ## 8. Exports & Documentation
 
