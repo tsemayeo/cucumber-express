@@ -11,7 +11,8 @@
     "example:assertions": "npm start --prefix examples/assertions",
     "example:building": "npm start --prefix examples/building",
     "example:schemas": "npm start --prefix examples/schemas",
-    "example:full-flow": "npm start --prefix examples/full-flow"
+    "example:full-flow": "npm start --prefix examples/full-flow",
+    "example:errors": "npm start --prefix examples/errors"
   },
   "peerDependencies": {
     "@cucumber/cucumber": ">=9.0.0",
