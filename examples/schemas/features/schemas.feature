@@ -38,3 +38,12 @@ Feature: Building request objects with buildFromSchema
     Then the request should match:
       | items[0].name | <present> |
       | items[2].name | <present> |
+
+  Scenario: Array resize then override a specific element
+    When I build a Order from schema with:
+      | items         | (array:3)     |
+      | items[1].name | Featured Item |
+    Then the request should match:
+      | items[0].name | <present>     |
+      | items[1].name | Featured Item |
+      | items[2].name | <present>     |
