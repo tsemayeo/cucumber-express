@@ -8,9 +8,9 @@
   "scripts": {
     "build": "tsc",
     "test": "vitest run",
-    "example:assertions": "npm start --prefix examples/assertions",
-    "example:building": "npm start --prefix examples/building",
-    "example:schemas": "npm start --prefix examples/schemas",
+    "example:assert": "npm start --prefix examples/assert",
+    "example:build": "npm start --prefix examples/build",
+    "example:schema": "npm start --prefix examples/schema",
     "example:full-flow": "npm start --prefix examples/full-flow",
     "example:errors": "npm start --prefix examples/errors"
   },
