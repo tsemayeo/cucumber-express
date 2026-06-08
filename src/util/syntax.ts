@@ -56,6 +56,22 @@ export function validateAssertValue(value: string): string | null {
   return null
 }
 
+export function validateBuildPathFromSchema(path: string): string | null {
+  const base = validatePath(path)
+  if (base !== null) return base
+  if (/\[\*\]|\[\+\]|\[-\]/.test(path))
+    return `Invalid path "${path}": collection operators ([*], [+], [-]) are not valid in a build table`
+  return null
+}
+
+export function validateBuildValueFromSchema(value: string): string | null {
+  if (value.startsWith('(array')) {
+    if (/^\(array:\d+\)$/.test(value)) return null
+    return `Invalid value "${value}": expected "(array:N)" where N is a non-negative integer`
+  }
+  return validateBuildValue(value)
+}
+
 export function validateBuildValue(value: string): string | null {
   const typeMatch = TYPE_PREFIX_REGEX.exec(value)
   if (!typeMatch) return null
