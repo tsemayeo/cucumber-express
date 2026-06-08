@@ -1,6 +1,6 @@
 import { Given, When, Then } from '@cucumber/cucumber'
 import { DataTable } from '@cucumber/cucumber'
-import { buildFromSchema, assertResponse, ScenarioWorld } from 'cucumber-express'
+import { buildFromSchema, assertResponse, validateSchemaContent, ScenarioWorld } from 'cucumber-express'
 
 Given('I have a built Product', function (this: ScenarioWorld) {
   this.request = buildFromSchema('Product', new DataTable([]), this)
@@ -27,6 +27,15 @@ When('I try to build a {word} from schema with:', function (this: ScenarioWorld,
 When('I try to assert the request with:', function (this: ScenarioWorld, dataTable: DataTable) {
   try {
     assertResponse(dataTable, this.request, this)
+    this.error = null
+  } catch (e) {
+    this.error = e instanceof Error ? e.message : String(e)
+  }
+})
+
+When('I try to validate the schema:', function (this: ScenarioWorld, content: string) {
+  try {
+    validateSchemaContent(content)
     this.error = null
   } catch (e) {
     this.error = e instanceof Error ? e.message : String(e)

@@ -1,5 +1,6 @@
 import type { SchemaDefinition, ValidationError } from './types.js'
 import { SCHEMA_HEADER_RE, TABLE_ROW_RE } from './patterns.js'
+import { parseSchemaFile } from './parse.js'
 const IDENTIFIER_RE        = /^[\w$]+$/
 const RECOGNIZED_PREFIX_RE = /^\((?:int|float|boolean|string|faker|schema|extends|array(?::\d+)?)\)/
 const FAKER_SYNTAX_RE      = /^\(faker\)\s+[a-zA-Z]+\.[a-zA-Z]+(?:\([^)]*\))?\s*$/
@@ -185,6 +186,17 @@ export function validateRegistry(definitions: SchemaDefinition[]): ValidationErr
   const { brokenSchemas, errors: refErrors } = checkUnresolvableRefs(definitions, allNames)
   errors.push(...refErrors, ...checkCycles(definitions, brokenSchemas))
   return errors
+}
+
+export function validateSchemaContent(content: string): void {
+  const structuralErrors = validateSchemaFile(content, '<inline>')
+  if (structuralErrors.length > 0)
+    throw new Error(structuralErrors.map(e => e.message).join('\n'))
+
+  const defs = parseSchemaFile(content, '<inline>')
+  const semanticErrors = validateRegistry(defs)
+  if (semanticErrors.length > 0)
+    throw new Error(semanticErrors.map(e => e.message).join('\n'))
 }
 
 function detectCycle(adj: Map<string, string[]>): string[] | null {
