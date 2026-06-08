@@ -11,6 +11,6 @@ Feature: Full workflow — build, send, assert, and chain across steps
       | price | 49.99          |
     When I fetch 5 products
     Then the response should match:
-      | products[+].title | /\w+/                        |
+      | products[+].title | /\w+/                         |
       | products[*].title | Essence Mascara Lash Princess |
-      | products[-].id    | <newProductId>               |
+      | products[-].id    | <newProductId>                |

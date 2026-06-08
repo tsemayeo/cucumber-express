@@ -6,6 +6,7 @@ export class ScenarioWorld {
   schemas?: SchemaRegistry
   request: unknown = null
   response: unknown = null
+  error: string | null = null
 
   static async withSchemas(pattern: string): Promise<typeof ScenarioWorld> {
     const registry = await loadSchemas(pattern)
