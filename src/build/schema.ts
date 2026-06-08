@@ -23,7 +23,7 @@ export function autoConstructItems(
       return 
     }
 
-    current = seg.kind === 'key' ? (current as Record<string, unknown>)[seg.value] : (current as unknown[])[seg.index]
+    current = seg.kind === 'key' ? (current as Record<string, unknown>)[seg.value] : (current as unknown[])[(seg as { kind: 'index'; index: number }).index]
 
     // Look ahead: if the next step is an OOB index on a typed array, fill up to that index
     if (next.kind === 'index' && Array.isArray(current) && next.index >= (current as unknown[]).length) {
