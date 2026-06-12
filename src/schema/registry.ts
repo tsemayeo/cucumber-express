@@ -37,6 +37,8 @@ export class SchemaRegistry {
         value = this.build(token.name)
       } else if (token.kind === 'array') {
         value = this.buildArray(token.itemSchema, token.count)
+      } else if (token.kind === 'env') {
+        value = process.env[token.name]
       }
 
       setPath(parsePath(path), obj, value)

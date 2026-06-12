@@ -154,6 +154,30 @@ describe('validateRegistry', () => {
     const errors = validateRegistry(defs)
     expect(errors.length).toBeGreaterThanOrEqual(2)
   })
+
+  it('reports missing env var for standalone <env:NAME> token', () => {
+    delete process.env['TEST_MISSING_VAR']
+    const defs = [def('Cfg', 'cfg.feature', [
+      { kind: 'field', path: 'key', value: { kind: 'env', name: 'TEST_MISSING_VAR' } },
+    ])]
+    const errors = validateRegistry(defs)
+    expect(errors).toHaveLength(1)
+    expect(errors[0].message).toContain('"TEST_MISSING_VAR"')
+    expect(errors[0].fileName).toBe('cfg.feature')
+  })
+
+  it('collects all missing env vars across definitions before throwing', () => {
+    delete process.env['TEST_VAR_A']
+    delete process.env['TEST_VAR_B']
+    const defs = [
+      def('A', 'a.feature', [{ kind: 'field', path: 'x', value: { kind: 'env', name: 'TEST_VAR_A' } }]),
+      def('B', 'b.feature', [{ kind: 'field', path: 'y', value: { kind: 'env', name: 'TEST_VAR_B' } }]),
+    ]
+    const errors = validateRegistry(defs)
+    const messages = errors.map(e => e.message)
+    expect(messages.some(m => m.includes('"TEST_VAR_A"'))).toBe(true)
+    expect(messages.some(m => m.includes('"TEST_VAR_B"'))).toBe(true)
+  })
 })
 
 // ── file-based fixtures ───────────────────────────────────────────────────────

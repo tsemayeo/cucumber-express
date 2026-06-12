@@ -1,32 +1,34 @@
 import type { SchemaDefinition, SchemaRow, SchemaValueToken } from './types.js'
 import { SCHEMA_HEADER_RE, TABLE_ROW_RE } from './patterns.js'
 
-const FAKER_RE = /^\(faker\)\s+([a-zA-Z]+\.[a-zA-Z]+)(?:\(([^)]*)\))?\s*$/
+const FAKER_REGEX    = /^\(faker\)\s+([a-zA-Z]+\.[a-zA-Z]+)(?:\(([^)]*)\))?\s*$/
+const ENV_REGEX      = /^<env:([A-Z0-9_]+)>$/
 
 function parseValue(raw: string): SchemaValueToken {
+
+   const envMatch = ENV_REGEX.exec(raw)
+
   if (raw.startsWith('(faker)')) {
-    const m = FAKER_RE.exec(raw)!
+    const m = FAKER_REGEX.exec(raw)!
     if (m[2] !== undefined && m[2] !== '') {
       const n = Number(m[2])
       return { kind: 'faker', path: m[1], arg: isNaN(n) ? m[2] : n }
     }
     return { kind: 'faker', path: m[1] }
-  }
-
-  if (raw.startsWith('(schema)')) {
+  } else if (raw.startsWith('(schema)')) {
     return { kind: 'schema', name: raw.slice('(schema)'.length).trim() }
-  }
-
-  if (raw.startsWith('(array')) {
+  } else if (raw.startsWith('(array')) {
     const m = /^\(array(?::(\d+))?\)\s*(.*)/.exec(raw)!
     const count      = m[1] !== undefined ? Number(m[1]) : undefined
     const itemSchema = m[2].trim() || undefined
     return count !== undefined
       ? { kind: 'array', itemSchema, count }
       : { kind: 'array', itemSchema }
+  } else if (envMatch) {
+    return { kind: 'env', name: envMatch[1] }
+  } else {
+    return { kind: 'literal', value: raw }
   }
-
-  return { kind: 'literal', value: raw }
 }
 
 function parseRow(trimmed: string): SchemaRow {

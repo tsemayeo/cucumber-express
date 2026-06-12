@@ -60,3 +60,16 @@ describe('parseValue — combined cast + lookup', () => {
     expect(parseValue('(boolean) <flag>', world)).toBe(true)
   })
 })
+
+describe('parseValue — env interpolation', () => {
+  it('<env:NAME> standalone resolves to env var value', () => {
+    process.env['TEST_ENV_PARSE'] = 'val-123'
+    expect(parseValue('<env:TEST_ENV_PARSE>')).toBe('val-123')
+    delete process.env['TEST_ENV_PARSE']
+  })
+
+  it('throws when <env:NAME> var is missing', () => {
+    delete process.env['TEST_ENV_MISSING']
+    expect(() => parseValue('<env:TEST_ENV_MISSING>')).toThrow('"TEST_ENV_MISSING"')
+  })
+})
