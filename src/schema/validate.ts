@@ -1,6 +1,7 @@
 import type { SchemaDefinition, ValidationError } from './types.js'
 import { SCHEMA_HEADER_RE, TABLE_ROW_RE } from './patterns.js'
 import { parseSchemaFile } from './parse.js'
+
 const IDENTIFIER_RE        = /^[\w$]+$/
 const RECOGNIZED_PREFIX_RE = /^\((?:int|float|boolean|string|faker|schema|extends|array(?::\d+)?)\)/
 const FAKER_SYNTAX_RE      = /^\(faker\)\s+[a-zA-Z]+\.[a-zA-Z]+(?:\([^)]*\))?\s*$/
@@ -181,10 +182,31 @@ function checkCycles(definitions: SchemaDefinition[], brokenSchemas: Set<string>
   return [{ fileName: filePath, schemaName: cycle[0], message: `Circular schema reference: ${cycle.join(' → ')}` }]
 }
 
+function checkEnvVars(definitions: SchemaDefinition[]): ValidationError[] {
+  const errors: ValidationError[] = []
+
+  for (const def of definitions) {
+    for (const row of def.rows) {
+      if (row.kind !== 'field') continue
+      const names: string[] = []
+
+      if (row.value.kind === 'env') {
+        names.push(row.value.name)
+      }
+
+      for (const name of names) {
+        if (process.env[name] === undefined)
+          errors.push(makeError(def.fileName, `Missing environment variable "${name}"`, undefined, def.name))
+      }
+    }
+  }
+  return errors
+}
+
 export function validateRegistry(definitions: SchemaDefinition[]): ValidationError[] {
   const { allNames, errors } = checkDuplicateNames(definitions)
   const { brokenSchemas, errors: refErrors } = checkUnresolvableRefs(definitions, allNames)
-  errors.push(...refErrors, ...checkCycles(definitions, brokenSchemas))
+  errors.push(...refErrors, ...checkCycles(definitions, brokenSchemas), ...checkEnvVars(definitions))
   return errors
 }
 

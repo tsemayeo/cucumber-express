@@ -166,6 +166,15 @@ describe('SchemaRegistry#build', () => {
     expect((obj.items as any).__itemSchema).toBe('Item')
   })
 
+  it('<env:NAME> standalone token resolves to env var value', () => {
+    process.env['TEST_API_KEY'] = 'key-abc'
+    const r = makeRegistry(makeDef('Cfg', [
+      { kind: 'field', path: 'apiKey', value: { kind: 'env', name: 'TEST_API_KEY' } },
+    ]))
+    expect(r.build('Cfg')).toEqual({ apiKey: 'key-abc' })
+    delete process.env['TEST_API_KEY']
+  })
+
   it('throws descriptively when schema not found', () => {
     const r = new SchemaRegistry()
     expect(() => r.build('Missing')).toThrow('Schema "Missing" not found in registry')

@@ -123,6 +123,18 @@ describe('parseSchemaFile', () => {
     expect(defs.every(d => d.fileName === 'my/schemas.feature')).toBe(true)
   })
 
+  it('<env:NAME> standalone parses to env token', () => {
+    const content = 'Schema: Config\n  | apiKey | <env:API_KEY> |'
+    const [def] = parseSchemaFile(content, 'f.feature')
+    expect(def.rows[0]).toEqual({ kind: 'field', path: 'apiKey', value: { kind: 'env', name: 'API_KEY' } })
+  })
+
+  it('<env:NAME> inline mid-string stays as literal', () => {
+    const content = 'Schema: Config\n  | auth | Bearer <env:TOKEN> |'
+    const [def] = parseSchemaFile(content, 'f.feature')
+    expect(def.rows[0]).toEqual({ kind: 'field', path: 'auth', value: { kind: 'literal', value: 'Bearer <env:TOKEN>' } })
+  })
+
   it('fixture round-trip: valid.feature parses all 6 schemas with correct row counts', () => {
     const content = readFileSync(join(fixturesDir, 'valid.feature'), 'utf8')
     const defs    = parseSchemaFile(content, 'valid.feature')
